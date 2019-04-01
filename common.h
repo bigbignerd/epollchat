@@ -23,7 +23,7 @@ void addfd(int epfd, int fd)
 {
     struct epoll_event ev;    
     ev.data.fd = fd;
-    ev.events = EPOLLIN;
+    ev.events = EPOLLIN | EPOLLET;
     epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev);
     printf("fd:%d add to epoll instance.\n", fd);
 }

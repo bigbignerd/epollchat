@@ -75,12 +75,14 @@ int main(int argc, char *argv[])
         //循环处理每一个事件
         for (i = 0; i < epoll_events_count; i++) {
             sfd = events[i].data.fd;
+            printf("socket fd:%d\n", sfd);
             //创建的socket listener 上有新的事件（新的客户端连接）
             if (sfd == listener) {
                 //接受客户端连接
                 client_addr_length = sizeof(struct sockaddr_in);
+                printf("client addr length:%d\n", client_addr_length);
                 clientFd = accept(listener, (struct sockaddr *)&clientAddr, &client_addr_length);
-                printf("new client,ip:%s port:%d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+                //printf("new client,ip:%s port:%d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
 
                 //客户端连接文件描述符加入epoll interest list
                 addfd(epfd, clientFd);
