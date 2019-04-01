@@ -7,11 +7,16 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <netinet/in.h>
+#include <unistd.h>
+#include <string.h>
 
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8888
 
 #define EPOLL_SIZE 1000
+
+#define TRUE 1
+#define FALSE 0
 
 /* 向epoll instance 添加监听文件描述符 */
 void addfd(int epfd, int fd)
