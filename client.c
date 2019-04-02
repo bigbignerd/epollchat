@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
         printf("create pipe fail.\n");
         exit(-1);
     }
+    //创建epoll instance
     epfd = epoll_create(EPOLL_SIZE);
     if (epfd < 0) {
         printf("create epoll instance fail.\n");    

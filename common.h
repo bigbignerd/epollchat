@@ -6,7 +6,9 @@
 //#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
+#include <fcntl.h>
 #include <netinet/in.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
 
@@ -21,6 +23,9 @@
 /* 向epoll instance 添加监听文件描述符 */
 void addfd(int epfd, int fd)
 {
+    //set 非阻塞
+    fcntl(fd, F_SETFL, fcntl(fd, F_GETFD, 0) | O_NONBLOCK);
+
     struct epoll_event ev;    
     ev.data.fd = fd;
     ev.events = EPOLLIN | EPOLLET;

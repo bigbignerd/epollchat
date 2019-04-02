@@ -2,13 +2,22 @@
  * epoll 聊天室 server 端
  */
 #include "common.h"
+#include "linklist.h"
 
 //最大缓冲连接数 
 #define CONNECTION_PENDING_LIMIT 10
 //epoll size
 #define EPOLL_SIZE 1000
 //欢迎语buff size
-#define BUFFER_SIZE 100
+#define BUFFER_SIZE 500
+
+//存储在线用户
+static node *clients = NULL;
+//在线用户数
+static int onlineCnt;
+
+//服务端广广播消息
+int sendBroadcastmessage(int cfd);
 
 int main(int argc, char *argv[])
 {
@@ -86,7 +95,10 @@ int main(int argc, char *argv[])
 
                 //客户端连接文件描述符加入epoll interest list
                 addfd(epfd, clientFd);
-
+                //记录新用户
+                clients = addNode(clients, clientFd);
+                onlineCnt += 1;
+                printf("online user count: %d\n", onlineCnt);
                 //发送服务端欢迎语
                 sprintf(message, "welcome %d", clientFd);
                 if (send(clientFd, message, BUFFER_SIZE, 0) < 0) {
@@ -94,7 +106,9 @@ int main(int argc, char *argv[])
                     break;
                 }
             } else {
-                printf("client message\n");    
+                if (sendBroadcastMessage(sfd) < 0) {
+                    printf("broadcast message fail\n");   
+                }
             }
         }
     }
@@ -103,3 +117,46 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+/** 广播消息 */
+int sendBroadcastMessage(int cfd)
+{
+    int len;
+    char notification[20] = "only you here";
+    char buffer[BUFFER_SIZE], message[BUFFER_SIZE];    
+    bzero(&buffer, BUFFER_SIZE);
+    bzero(&message, BUFFER_SIZE);
+    node *p;
+    len = recv(cfd, buffer, BUFFER_SIZE, 0);
+    //客户端断开连接
+    if (len == 0) {
+        close(cfd);
+        printf("client %d offline\n", cfd);
+        clients = delNode(clients, cfd);
+        onlineCnt -= 1;
+    } else {
+        if (onlineCnt == 1) {
+            send(cfd, notification, strlen(notification), 0);    
+            return len;
+        } 
+        p = clients;
+        while (p != NULL && p->data > 0) {
+            if (p->data != cfd) {
+                sprintf(message, "client %d say>> %s\n", cfd, buffer);
+                if (send(p->data, message, strlen(message), 0) < 0) {
+                    printf("broadcast message fail.\n");    
+                    exit(-1);
+                }    
+            }    
+            p = p->next; 
+        }
+    }
+    return len;
+}
+
+
+
+
+
+
+
